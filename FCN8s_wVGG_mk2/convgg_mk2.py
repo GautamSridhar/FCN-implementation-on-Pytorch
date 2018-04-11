@@ -183,7 +183,7 @@ class ToTensor(object):
 	def __call__(self,sample):
 		image,gtruths = sample['image'] , sample['gtruths']
 		#image = (image - 0.09444)/0.2270                        #Mean normalisation of data followed by division by standard deviation
-		#image = (image - 0.09444)                               #Mean normalisation of data
+		#image = (image - 0.09444)                               #Mean normalisation of data. Replace with means and SD's relevant to the particular dataset.
 		img = np.zeros((3,image.shape[0],image.shape[1]))        #Since this is a version with vgg pretrained weights, the input image if
 		img[0,:,:] = image                                       #only in greyscale as in case od medical images has to be converted to 3
 		img[1,:,:] = image                                       #channel image. Comment out otherwise.
