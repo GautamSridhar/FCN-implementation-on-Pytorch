@@ -19,6 +19,8 @@ FCN8s_wVGG executes FCN8s with pretrained weights and with sigmoid + binary cros
 FCN8s_wVGG_mk2 executes FCN8s with pretrained weights and with softmax + cross entropy loss 
 FCN8s_wVGG_mk2 executes FCN8s with pretrained weights and with softmax + weighted cross entropy loss 
 
+To implement, download a dataset for segmentation like the PASCAL VOC dataset available here - http://host.robots.ox.ac.uk/pascal/VOC/voc2012/
+
 To run, simply execute train_xx.py depending on which version you run. If using PyTorch with multiple GPU's use CUDA_VISIBLE_DEVICES=X python train_xx.py where X is the device id of the GPU. 
 
 Fill in the following in the code - 
