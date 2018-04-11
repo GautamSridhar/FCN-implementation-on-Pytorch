@@ -23,9 +23,12 @@ To implement, download a dataset for segmentation like the PASCAL VOC dataset av
 
 To run, simply execute train_xx.py depending on which version you run. If using PyTorch with multiple GPU's use CUDA_VISIBLE_DEVICES=X python train_xx.py where X is the device id of the GPU. 
 
-Fill in the following in the code - 
-1. root_dir in conv___.py files to signify where the dataset is stored
-2. model_dir in train___.py files to signify where the models are to be stored
-3. root_dir in train___.py files to signify where the dataset is stored
-4. Fill ... in val function in all train.py to signify where the validation images should be stored
+Follow the given instructions - 
+1. Fill in root_dir in conv___.py files to signify where the dataset is stored
+2. Create a names.csv file in root_dir with the names of all the images that have to be read organised as follows - 
+   on the left column, the names of the input images, on the right column the names of the associated ground truth images.
+3. Add or remove particular lines in the code as required and mentioned at appropriate places depending on application.
+4. Fill in model_dir in train___.py files to signify where the models are to be stored
+5. Fill in root_dir in train___.py files to signify where the dataset is stored
+6. Fill ... in val function in all train.py to signify where the validation images should be stored
 
