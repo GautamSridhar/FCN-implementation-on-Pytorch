@@ -1,3 +1,9 @@
+"""
+Architecture definition for Fully Convolutional Neural Networks (FCN8s)
+Initialised with pretrained VGG weights
+Weights initialised by bilinear upsampling for convolutional transpose layers
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -29,20 +35,20 @@ class FCN8s(nn.Module):
 	def __init__(self,n_class,vgg):
 		
 		super(FCN8s,self).__init__()
-		self.vgg = vgg
+		self.vgg = vgg                                         #VGG architecture definition   
 		#conv1
 		self.conv1_1 = nn.Conv2d(3,64,3,padding=100)
 		self.relu1_1 = nn.ReLU(inplace=True)
 		self.conv1_2 = nn.Conv2d(64,64,3,padding = 1)
 		self.relu1_2 = nn.ReLU(inplace=True)
-		self.pool1 = nn.MaxPool2d(2, stride=2, ceil_mode=True) #1/2
+		self.pool1 = nn.MaxPool2d(2, stride=2, ceil_mode=True) #1/2 dimension reduction
 		
 		#conv2
 		self.conv2_1 = nn.Conv2d(64,128,3,padding = 1)
 		self.relu2_1 = nn.ReLU(inplace=True)
 		self.conv2_2 = nn.Conv2d(128,128,3,padding=1)
 		self.relu2_2 = nn.ReLU(inplace=True)
-		self.pool2 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/4 
+		self.pool2 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/4 dimension reduction 
 		
 		
 		#conv3 
@@ -52,7 +58,7 @@ class FCN8s(nn.Module):
 		self.relu3_2 = nn.ReLU(inplace = True)
 		self.conv3_3 = nn.Conv2d(256,256,3,padding=1)
 		self.relu3_3 = nn.ReLU(inplace = True)
-		self.pool3 = nn.MaxPool2d(2, stride=2, ceil_mode=True)  # 1/8
+		self.pool3 = nn.MaxPool2d(2, stride=2, ceil_mode=True)  # 1/8 dimension reduction
 		
 		#conv4
 		self.conv4_1 = nn.Conv2d(256, 512, 3, padding=1)
@@ -61,7 +67,7 @@ class FCN8s(nn.Module):
 		self.relu4_2 = nn.ReLU(inplace=True)
 		self.conv4_3 = nn.Conv2d(512, 512, 3, padding=1)
 		self.relu4_3 = nn.ReLU(inplace=True)
-		self.pool4 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/16
+		self.pool4 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/16 dimension reduction
 		
 		#conv5
 		self.conv5_1 = nn.Conv2d(512, 512, 3, padding=1)
@@ -70,7 +76,7 @@ class FCN8s(nn.Module):
 		self.relu5_2 = nn.ReLU(inplace=True)
 		self.conv5_3 = nn.Conv2d(512, 512, 3, padding=1)
 		self.relu5_3 = nn.ReLU(inplace=True)
-		self.pool5 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/32
+		self.pool5 = nn.MaxPool2d(2, stride=2, ceil_mode=True) # 1/32 dimension reduction
 		
 		#fc6
 		self.fc6 = nn.Conv2d(512,4096,7)
@@ -82,29 +88,15 @@ class FCN8s(nn.Module):
 		self.relu7 = nn.ReLU(inplace = True)
 		self.drop7 = nn.Dropout2d()
 		
-		self.score_fr = nn.Conv2d(4096,n_class,1)
+		self.score_fr = nn.Conv2d(4096,n_class,1)             #Skip Layer defintions
 		self.score_pool3 = nn.Conv2d(256,n_class,1)
 		self.score_pool4 = nn.Conv2d(512,n_class,1)
 		
-		self.upscore2 = nn.ConvTranspose2d(n_class,n_class,4,stride=2,bias=False)
+		self.upscore2 = nn.ConvTranspose2d(n_class,n_class,4,stride=2,bias=False)     #Upsampling layer defintions
 		self.upscore8 = nn.ConvTranspose2d(n_class,n_class,16,stride=8,bias=False)
 		self.upscore_pool4 = nn.ConvTranspose2d(n_class,n_class,4,stride=2,bias=False)
 		
-		#self._initialize_weights()
 		self._copy_params_from_vgg16()
-				
-	#def _initialize_weights(self):
-		#for m in self.modules():
-			#if isinstance(m,nn.Conv2d):
-				#n = m.kernel_size[0] * m.kernel_size[1] *m.out_channels
-				#m.weight.data.normal_(0,math.sqrt(2./n))
-				#m.weight.data.zero_()
-				#if m.bias is not None:
-						#m.bias.data.zero_()           #Consider Xavier initialisation
-			#if isinstance(m,nn.ConvTranspose2d):
-				#assert m.kernel_size[0] == m.kernel_size[1]
-				#initial_weight = get_upsampling_weight(m.in_channels,m.out_channels,m.kernel_size[0])
-				#m.weight.data.copy_(initial_weight)
 									
 	def forward(self,x):
 		h = x
@@ -164,6 +156,9 @@ class FCN8s(nn.Module):
 		return h
 	
 	def _copy_params_from_vgg16(self):
+        #Copy VGG parameters from a pretrained VGG16 net available on Pytorch
+        #Generate weights for all layers not part of VGG16 by either Xavier or Bilinear upsampling
+
 		features = [self.conv1_1, self.relu1_1, self.conv1_2, self.relu1_2, self.pool1, self.conv2_1, self.relu2_1, self.conv2_2, self.relu2_2, self.pool2,self.conv3_1, self.relu3_1, self.conv3_2, self.relu3_2, self.conv3_3, self.relu3_3, self.pool3,self.conv4_1, self.relu4_1, self.conv4_2, self.relu4_2, self.conv4_3, self.relu4_3, self.pool4, self.conv5_1, self.relu5_1, self.conv5_2, self.relu5_2, self.conv5_3, self.relu5_3, self.pool5,]
 		for l1,l2 in zip(self.vgg.features,features):
 			if isinstance(l1,nn.Conv2d) and isinstance(l2,nn.Conv2d):
@@ -172,7 +167,7 @@ class FCN8s(nn.Module):
 				l2.weight.data.copy_(l1.weight.data).double()
 				l2.bias.data.copy_(l1.bias.data).double()
 				l2.bias.data.copy_(l1.bias.data).double()
-				#print("Copying done")
+
 		classifier = [self.fc6,self.relu6,self.drop6,self.fc7,self.relu7,self.drop7,self.score_fr,self.score_pool3,self.score_pool4,self.upscore2,self.upscore8,self.upscore_pool4]
 		for i in classifier:
 			if isinstance(i,nn.Conv2d):
@@ -184,10 +179,9 @@ class FCN8s(nn.Module):
 				assert i.kernel_size[0] == i.kernel_size[1]
 				initial_weight = get_upsampling_weight(i.in_channels,i.out_channels,i.kernel_size[0])
 				i.weight.data.copy_(initial_weight)
-				
-			#print("normal initialisation done")
 					   	
-"""			
+"""
+#Test Code			
 if __name__ == "__main__":
 	batch_size, n_class, h,w = 5,11,224,224
 	
