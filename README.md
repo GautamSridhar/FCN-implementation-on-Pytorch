@@ -22,9 +22,9 @@ FCN8s_wVGG_mk2 executes FCN8s with pretrained weights and with softmax + weighte
 To run, simply execute train_xx.py depending on which version you run. If using PyTorch with multiple GPU's use CUDA_VISIBLE_DEVICES=X python train_xx.py where X is the device id of the GPU.
 
 Fill in the following in the code - 
-1.root_dir in conv___.py files to signify where the dataset is stored
+1. root_dir in conv___.py files to signify where the dataset is stored
 
-2.model_dir in train___.py files to signify where the models are to be stored
-3.root_dir in train___.py files to signify where the dataset is stored
-4.Fill ... in val function in all train.py to signify where the validation images should be stored
+2. model_dir in train___.py files to signify where the models are to be stored
+3. root_dir in train___.py files to signify where the dataset is stored
+4. Fill ... in val function in all train.py to signify where the validation images should be stored
 
