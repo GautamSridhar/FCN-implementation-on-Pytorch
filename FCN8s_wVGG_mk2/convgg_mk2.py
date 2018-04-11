@@ -1,3 +1,24 @@
+"""
+Class and operations for loading the dataset for PyTorch
+
+Class Descriptions - 
+
+OpDataset - Reading images from the datset folder and creating a tuple with ground truths
+            The names of the dataset images are saved in a csv file, with first column 
+            images and second column having he corresponding ground truth images
+
+Rescale -  Rescales the image to the desired output size
+
+RandomCrop -  Does a Random crop from the image of the specified dimensions
+
+RandomFlipVetical - Performs a random vertical flip on the image dependent on probability p. 
+                    p=0.5 by default
+
+RandomFlipHorizontal - Performs a random horizontal flip on the image dependent on 
+                    probability p. p=0.5 by default
+
+ToTensor -  Converts the image and ground truth image to Pytorch Tensor format
+"""
 import os
 import torch
 import pandas as pd
@@ -13,7 +34,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-root_dir = '/home/sridharg/Documents/Biomed_Imaging/BioMed_Imaging/Dataset/DATA/'
+root_dir = '' #enter root directory to dataset with images here
 
 names = pd.read_csv(root_dir + 'names.csv')
 
@@ -105,7 +126,7 @@ class RandomCrop(object):
 		return{'image':image, 'gtruths':gtruths}
 		
 class RandomFlipVertical(object):
-	""" Flip an image randomly on its horizontal axis
+	""" Flip an image randomly on its vertical axis
 	Args:
 		probability p :  probability of the flip being carried out. Default p = 0.5
 	"""
@@ -132,7 +153,7 @@ class RandomFlipVertical(object):
 		return {'image':im, 'gtruths':gt}
 		
 class RandomFlipHorizontal(object):
-	""" FLip an image randomly on its vertical
+	""" FLip an image randomly on its horizontal
 	Args:
 		probability p : probability of the flip being carried out. Default p = 0.5
 	"""
@@ -161,40 +182,39 @@ class ToTensor(object):
 	
 	def __call__(self,sample):
 		image,gtruths = sample['image'] , sample['gtruths']
-		#image = (image - 0.09444)/0.2270
-		image = (image - 0.09444)
-		#img = np.zeros((3,image.shape[0],image.shape[1]))
-		#img[0,:,:] = image
-		#img[1,:,:] = image
-		#img[2,:,:] = image
-		image = np.expand_dims(image,axis=0)
+		#image = (image - 0.09444)/0.2270                        #Mean normalisation of data followed by division by standard deviation
+		#image = (image - 0.09444)                               #Mean normalisation of data
+		img = np.zeros((3,image.shape[0],image.shape[1]))        #Since this is a version with vgg pretrained weights, the input image if
+		img[0,:,:] = image                                       #only in greyscale as in case od medical images has to be converted to 3
+		img[1,:,:] = image                                       #channel image. Comment out otherwise.
+		img[2,:,:] = image
 		c_size = 11
 		h,w = gtruths.shape[:2]
-		gt_new = np.zeros((c_size,h,w), dtype = np.uint8)
+
+		gt_new = np.zeros((h,w), dtype = np.uint8)
+		idx = np.where(gtruths == 0)                            #Increase the value of background pixels so they can be ignored in the train
+		idx_x = idx[0]                                          #code
+		idx_y = idx[1]
+		for j in range(idx_x.shape[0]):
+			gt_new[idx_x[j],idx_y[j]] = 100
 		for i in range(c_size):
-			idx = np.where(gtruths == i+1)
+			idx = np.where(gtruths == i+1+70)                   #Decrease intensity of the pixels to be segmented to between 0-c_size
 			idx_x = idx[0]
 			idx_y = idx[1]
 			for j in range(idx_x.shape[0]):
-				gt_new[i,idx_x[j],idx_y[j]] = 1
-			
-		#for j in range(gtruths.shape[0]):
-			#for k in range(gtruths.shape[1]):
-				#if gtruths[j,k] == 1:
-						#gt_new[0,j,k] = 255
-							
-		#if self.mode == "Val":
-			#gt_new = gtruths			
-		return {'image':torch.from_numpy(image).double(),'gtruths':torch.from_numpy(gt_new).double()}
+				gt_new[idx_x[j],idx_y[j]] = i
+										
+		return {'image':torch.from_numpy(img).double(),'gtruths':torch.from_numpy(gt_new).long()}
 		#return {'image':image,'gtruths':gt_new}
-"""		
+"""
+#Test Code						
 if __name__ == "__main__":
 	
-	dataset_train = MiceDataset(csv_file=names,root_dir=root_dir,transform = transforms.Compose([RandomCrop((224,224)),RandomFlipHorizontal(),ToTensor(mode="Train")]))
+	dataset_train = MiceDataset(csv_file=names,root_dir=root_dir,transform = transforms.Compose([ToTensor()]))
 	
-	for i in range(45):
-		sample = dataset_train[i]
-		print(i)
-		plt.imshow(sample['image'][0,:,:], cmap = 'gray')
-		plt.show()
-"""		
+	i = 3
+	sample = dataset_train[3]
+	print(i, sample['gtruths'].type())
+	plt.imshow(sample['gtruths'], cmap = 'gray')
+	plt.show()
+"""				
