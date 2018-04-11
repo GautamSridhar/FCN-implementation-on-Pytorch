@@ -183,7 +183,7 @@ class ToTensor(object):
 	def __call__(self,sample):
 		image,gtruths = sample['image'] , sample['gtruths']
 		#image = (image - 0.09444)/0.2270                         #Mean normalisation of data followed by division by standard deviation
-		image = (image - 0.09444)                                 #Mean normalisation of data
+		#image = (image - 0.09444)                                #Mean normalisation of data. Replace with means and SD's of the relevant datasets.
 		image = np.expand_dims(image,axis=0)
 		c_size = 11
 		h,w = gtruths.shape[:2]                              
