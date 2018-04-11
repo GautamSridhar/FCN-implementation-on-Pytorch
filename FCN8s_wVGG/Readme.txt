@@ -1,1 +1,1 @@
-This Folder contains FCN8s implementation with VGG
+This Folder contains FCN8s implementation with pretrained VGG weights
